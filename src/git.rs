@@ -72,7 +72,12 @@ pub fn current_branch(repo: &Path) -> Result<String> {
 pub fn branch_exists(source_repo: &Path, branch: &str) -> Result<bool> {
     let out = git_raw(
         source_repo,
-        &["show-ref", "--verify", "--quiet", &format!("refs/heads/{branch}")],
+        &[
+            "show-ref",
+            "--verify",
+            "--quiet",
+            &format!("refs/heads/{branch}"),
+        ],
     )?;
     Ok(out.status.success())
 }
@@ -139,12 +144,14 @@ pub fn worktree_remove(source_repo: &Path, dest: &Path, force: bool) -> Result<(
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct Worktree {
     pub path: PathBuf,
     pub branch: Option<String>,
     pub head: Option<String>,
 }
 
+#[allow(dead_code)]
 pub fn worktree_list(source_repo: &Path) -> Result<Vec<Worktree>> {
     let out = git_output(source_repo, &["worktree", "list", "--porcelain"])?;
     let mut worktrees = Vec::new();
@@ -189,23 +196,26 @@ pub fn worktree_source_repo(worktree_dir: &Path) -> Result<PathBuf> {
     }
     let contents = std::fs::read_to_string(&git_file)?;
     let line = contents.trim();
-    let gitdir = line.strip_prefix("gitdir:").map(|s| s.trim()).ok_or_else(|| {
-        PowError::GitFailed(format!(
-            "{}: unexpected .git file contents",
-            git_file.display()
-        ))
-    })?;
+    let gitdir = line
+        .strip_prefix("gitdir:")
+        .map(|s| s.trim())
+        .ok_or_else(|| {
+            PowError::GitFailed(format!(
+                "{}: unexpected .git file contents",
+                git_file.display()
+            ))
+        })?;
     let gitdir_path = PathBuf::from(gitdir);
     // Expected: .../<source>/.git/worktrees/<name>
     // Walk up: worktrees -> .git -> <source>
-    let wt_name_parent = gitdir_path.parent().ok_or_else(|| {
-        PowError::GitFailed(format!("unexpected gitdir path: {gitdir}"))
-    })?;
-    let dot_git = wt_name_parent.parent().ok_or_else(|| {
-        PowError::GitFailed(format!("unexpected gitdir path: {gitdir}"))
-    })?;
-    let source = dot_git.parent().ok_or_else(|| {
-        PowError::GitFailed(format!("unexpected gitdir path: {gitdir}"))
-    })?;
+    let wt_name_parent = gitdir_path
+        .parent()
+        .ok_or_else(|| PowError::GitFailed(format!("unexpected gitdir path: {gitdir}")))?;
+    let dot_git = wt_name_parent
+        .parent()
+        .ok_or_else(|| PowError::GitFailed(format!("unexpected gitdir path: {gitdir}")))?;
+    let source = dot_git
+        .parent()
+        .ok_or_else(|| PowError::GitFailed(format!("unexpected gitdir path: {gitdir}")))?;
     Ok(source.to_path_buf())
 }

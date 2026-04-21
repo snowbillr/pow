@@ -6,8 +6,10 @@ use crate::error::Result;
 pub struct OrgRepo {
     pub name: String,
     pub clone_url_ssh: String,
+    #[allow(dead_code)]
     pub clone_url_https: Option<String>,
     pub archived: bool,
+    #[allow(dead_code)]
     pub default_branch: Option<String>,
 }
 
@@ -66,4 +68,3 @@ pub fn resolve_token(config_token: Option<&str>) -> Option<String> {
         .or_else(|| std::env::var("GITHUB_TOKEN").ok())
         .filter(|s| !s.is_empty())
 }
-

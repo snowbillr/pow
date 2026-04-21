@@ -221,7 +221,12 @@ pub async fn dispatch(cli: Cli) -> Result<(), PowError> {
             workspace,
             branch,
             from,
-        } => crate::workspace::lifecycle::add(&repo, workspace.as_deref(), branch.as_deref(), from.as_deref()),
+        } => crate::workspace::lifecycle::add(
+            &repo,
+            workspace.as_deref(),
+            branch.as_deref(),
+            from.as_deref(),
+        ),
         Commands::Forget {
             repo,
             workspace,
@@ -239,7 +244,9 @@ pub async fn dispatch(cli: Cli) -> Result<(), PowError> {
             no_status,
         } => crate::workspace::show::show(name.as_deref(), json, no_status),
         Commands::Use { name } => crate::workspace::nav::use_workspace(&name),
-        Commands::Cd { name, entry } => crate::workspace::nav::cd(name.as_deref(), entry.as_deref()),
+        Commands::Cd { name, entry } => {
+            crate::workspace::nav::cd(name.as_deref(), entry.as_deref())
+        }
         Commands::Current { json } => crate::workspace::nav::current(json),
         Commands::Switch {
             repo,

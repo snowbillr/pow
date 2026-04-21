@@ -9,7 +9,7 @@ pub enum PowError {
     #[error("git operation failed: {0}")]
     GitFailed(String),
     #[error("github API error: {0}")]
-    GithubError(#[from] octocrab::Error),
+    GithubError(Box<octocrab::Error>),
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
     #[error("config error: {0}")]
@@ -30,6 +30,12 @@ impl PowError {
             PowError::GithubError(_) => 6,
             _ => 1,
         }
+    }
+}
+
+impl From<octocrab::Error> for PowError {
+    fn from(e: octocrab::Error) -> Self {
+        PowError::GithubError(Box::new(e))
     }
 }
 

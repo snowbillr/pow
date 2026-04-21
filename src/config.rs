@@ -120,6 +120,7 @@ impl Config {
         self.sources.iter().find(|s| s.name == name)
     }
 
+    #[allow(dead_code)]
     pub fn find_source_mut(&mut self, name: &str) -> Option<&mut Source> {
         self.sources.iter_mut().find(|s| s.name == name)
     }
@@ -152,7 +153,10 @@ impl Config {
 pub fn cmd_print(json: bool) -> Result<()> {
     let cfg = Config::load()?;
     if json {
-        println!("{}", serde_json::to_string_pretty(&cfg).map_err(|e| PowError::Config(e.to_string()))?);
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&cfg).map_err(|e| PowError::Config(e.to_string()))?
+        );
     } else {
         print!("{}", toml::to_string_pretty(&cfg)?);
     }
@@ -195,7 +199,9 @@ fn set_value(cfg: &mut Config, key: &str, value: &str) -> Result<()> {
         }
         "settings.parallel" => {
             let n: usize = value.parse().map_err(|_| {
-                PowError::Config(format!("settings.parallel must be a positive integer, got '{value}'"))
+                PowError::Config(format!(
+                    "settings.parallel must be a positive integer, got '{value}'"
+                ))
             })?;
             if n == 0 {
                 return Err(PowError::Config("settings.parallel must be >= 1".into()));
@@ -247,7 +253,10 @@ mod tests {
         let back: Config = toml::from_str(&text).unwrap();
         assert_eq!(back.sources.len(), 1);
         assert_eq!(back.sources[0].name, "babylist");
-        assert_eq!(back.sources[0].include, vec!["web".to_string(), "api-*".into()]);
+        assert_eq!(
+            back.sources[0].include,
+            vec!["web".to_string(), "api-*".into()]
+        );
     }
 
     #[test]
@@ -258,7 +267,10 @@ mod tests {
         assert_eq!(get_value(&cfg, "settings.parallel").unwrap(), "8");
 
         set_value(&mut cfg, "settings.default_source", "babylist").unwrap();
-        assert_eq!(get_value(&cfg, "settings.default_source").unwrap(), "babylist");
+        assert_eq!(
+            get_value(&cfg, "settings.default_source").unwrap(),
+            "babylist"
+        );
 
         set_value(&mut cfg, "github.token", "ghp_test").unwrap();
         assert_eq!(get_value(&cfg, "github.token").unwrap(), "ghp_test");

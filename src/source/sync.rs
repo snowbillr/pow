@@ -8,31 +8,24 @@ use crate::github;
 use crate::source::add_github;
 use crate::source::filter;
 
-pub async fn run(
-    name: &str,
-    dry_run: bool,
-    prune: bool,
-    parallel: Option<usize>,
-) -> Result<()> {
+pub async fn run(name: &str, dry_run: bool, prune: bool, parallel: Option<usize>) -> Result<()> {
     let cfg = Config::load()?;
     let source = cfg
         .find_source(name)
         .ok_or_else(|| PowError::SourceNotFound(name.to_string()))?
         .clone();
-    let org = source
-        .github_org
-        .as_deref()
-        .ok_or_else(|| PowError::Message(format!(
+    let org = source.github_org.as_deref().ok_or_else(|| {
+        PowError::Message(format!(
             "source '{name}' has no github_org; nothing to sync from."
-        )))?;
+        ))
+    })?;
     let path = source.expanded_path()?;
     std::fs::create_dir_all(&path)?;
 
     let token = github::resolve_token(cfg.github.token.as_deref());
 
     eprintln!("Fetching repos from GitHub org '{org}'...");
-    let all_repos =
-        github::list_org_repos(org, token.as_deref(), !source.skip_archived).await?;
+    let all_repos = github::list_org_repos(org, token.as_deref(), !source.skip_archived).await?;
     let filtered = filter::apply_filters(
         &all_repos,
         &source.include,
@@ -83,7 +76,11 @@ pub async fn run(
 
     if prune && !to_prune.is_empty() {
         for n in &to_prune {
-            eprint!("Remove {}/{} (no longer in org set)? [y/N] ", path.display(), n);
+            eprint!(
+                "Remove {}/{} (no longer in org set)? [y/N] ",
+                path.display(),
+                n
+            );
             io::stderr().flush()?;
             let mut buf = String::new();
             io::stdin().read_line(&mut buf)?;

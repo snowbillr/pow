@@ -71,7 +71,9 @@ pub fn add(
         if let Err(e) = git::worktree_add_existing(&resolved.repo_path, &dest, &branch_name) {
             return Err(augment_worktree_error(e, &branch_name, &resolved.repo_path));
         }
-    } else if let Err(e) = git::worktree_add(&resolved.repo_path, &dest, &branch_name, Some(&base_branch)) {
+    } else if let Err(e) =
+        git::worktree_add(&resolved.repo_path, &dest, &branch_name, Some(&base_branch))
+    {
         return Err(augment_worktree_error(e, &branch_name, &resolved.repo_path));
     }
 
@@ -90,7 +92,10 @@ pub fn forget(repo: &str, workspace: Option<&str>, prune_branch: bool) -> Result
     let entry = ws
         .entries
         .iter()
-        .find(|e| e.name == repo || format!("{}/{}", e.source_name.clone().unwrap_or_default(), e.name) == repo)
+        .find(|e| {
+            e.name == repo
+                || format!("{}/{}", e.source_name.clone().unwrap_or_default(), e.name) == repo
+        })
         .ok_or_else(|| {
             PowError::RepoNotFound(format!("no entry '{repo}' in workspace '{ws_name}'"))
         })?;
@@ -133,7 +138,11 @@ pub fn rm(name: &str, prune_branches: bool, force: bool) -> Result<()> {
         eprint!(
             "Tear down workspace '{name}' ({} {})? [y/N] ",
             ws.entries.len(),
-            if ws.entries.len() == 1 { "entry" } else { "entries" }
+            if ws.entries.len() == 1 {
+                "entry"
+            } else {
+                "entries"
+            }
         );
         io::stderr().flush()?;
         let mut buf = String::new();
@@ -156,7 +165,10 @@ pub fn rm(name: &str, prune_branches: bool, force: bool) -> Result<()> {
         }
         if prune_branches && !branch.is_empty() {
             match git::branch_delete(&entry.source_repo_path, &branch, false) {
-                Ok(()) => println!("Deleted branch '{branch}' in {}.", entry.source_repo_path.display()),
+                Ok(()) => println!(
+                    "Deleted branch '{branch}' in {}.",
+                    entry.source_repo_path.display()
+                ),
                 Err(_) => {
                     if force {
                         match git::branch_delete(&entry.source_repo_path, &branch, true) {
@@ -164,9 +176,7 @@ pub fn rm(name: &str, prune_branches: bool, force: bool) -> Result<()> {
                                 "Force-deleted branch '{branch}' in {}.",
                                 entry.source_repo_path.display()
                             ),
-                            Err(e) => eprintln!(
-                                "warning: could not delete branch '{branch}': {e}"
-                            ),
+                            Err(e) => eprintln!("warning: could not delete branch '{branch}': {e}"),
                         }
                     } else {
                         eprintln!(

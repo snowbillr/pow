@@ -27,7 +27,10 @@ pub fn current(json: bool) -> Result<()> {
         }
         None => {
             if json {
-                println!("{}", serde_json::to_string(&serde_json::json!({"active": null})).unwrap());
+                println!(
+                    "{}",
+                    serde_json::to_string(&serde_json::json!({"active": null})).unwrap()
+                );
             } else {
                 println!("no active workspace");
             }

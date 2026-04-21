@@ -53,10 +53,30 @@ pub fn list(json: bool) -> Result<()> {
         org: "GITHUB ORG".into(),
         base: "BASE".into(),
     };
-    let name_w = rows.iter().chain([&header]).map(|r| r.name.len()).max().unwrap();
-    let path_w = rows.iter().chain([&header]).map(|r| r.path.len()).max().unwrap();
-    let count_w = rows.iter().chain([&header]).map(|r| r.count.len()).max().unwrap();
-    let org_w = rows.iter().chain([&header]).map(|r| r.org.len()).max().unwrap();
+    let name_w = rows
+        .iter()
+        .chain([&header])
+        .map(|r| r.name.len())
+        .max()
+        .unwrap();
+    let path_w = rows
+        .iter()
+        .chain([&header])
+        .map(|r| r.path.len())
+        .max()
+        .unwrap();
+    let count_w = rows
+        .iter()
+        .chain([&header])
+        .map(|r| r.count.len())
+        .max()
+        .unwrap();
+    let org_w = rows
+        .iter()
+        .chain([&header])
+        .map(|r| r.org.len())
+        .max()
+        .unwrap();
 
     let stdout = io::stdout();
     let mut out = stdout.lock();

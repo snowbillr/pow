@@ -99,14 +99,13 @@ pub(crate) fn pick_repos(repos: &[OrgRepo], skip_archived: bool) -> Result<Vec<S
         .interact()
         .map_err(|e| PowError::Message(format!("picker failed: {e}")))?;
 
-    Ok(selections.into_iter().map(|i| visible[i].name.clone()).collect())
+    Ok(selections
+        .into_iter()
+        .map(|i| visible[i].name.clone())
+        .collect())
 }
 
-pub(crate) async fn clone_all(
-    repos: &[&OrgRepo],
-    dest_dir: &Path,
-    parallel: usize,
-) -> Result<()> {
+pub(crate) async fn clone_all(repos: &[&OrgRepo], dest_dir: &Path, parallel: usize) -> Result<()> {
     let mp = MultiProgress::new();
     let style = ProgressStyle::with_template("{spinner} {prefix:20} {wide_msg}")
         .unwrap_or_else(|_| ProgressStyle::default_spinner());

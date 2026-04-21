@@ -8,19 +8,12 @@ use crate::error::{PowError, Result};
 use crate::git;
 use crate::workspace::{resolve_workspace_name, show, Entry, Workspace};
 
-pub fn switch(
-    repo: &str,
-    target: &str,
-    new: bool,
-    workspace: Option<&str>,
-) -> Result<()> {
+pub fn switch(repo: &str, target: &str, new: bool, workspace: Option<&str>) -> Result<()> {
     let ws_name = resolve_workspace_name(workspace)?;
     let ws = Workspace::scan(&ws_name)?;
-    let entry = ws
-        .entries
-        .iter()
-        .find(|e| e.name == repo)
-        .ok_or_else(|| PowError::RepoNotFound(format!("no entry '{repo}' in workspace '{ws_name}'")))?;
+    let entry = ws.entries.iter().find(|e| e.name == repo).ok_or_else(|| {
+        PowError::RepoNotFound(format!("no entry '{repo}' in workspace '{ws_name}'"))
+    })?;
 
     let args: Vec<&str> = if new {
         vec!["checkout", "-b", target]
@@ -30,9 +23,7 @@ pub fn switch(
     let out = git::git_raw(&entry.path, &args)?;
     if !out.status.success() {
         let stderr = String::from_utf8_lossy(&out.stderr).trim().to_string();
-        if stderr.contains("already used by worktree")
-            || stderr.contains("already checked out")
-        {
+        if stderr.contains("already used by worktree") || stderr.contains("already checked out") {
             return Err(PowError::GitFailed(format!(
                 "{stderr}\nhint: '{target}' is checked out in another worktree of this repo."
             )));
@@ -47,11 +38,7 @@ pub fn switch(
     Ok(())
 }
 
-pub async fn sync(
-    repo: Option<&str>,
-    all: bool,
-    workspace: Option<&str>,
-) -> Result<()> {
+pub async fn sync(repo: Option<&str>, all: bool, workspace: Option<&str>) -> Result<()> {
     let cfg = Config::load()?;
     let parallel = cfg.settings.parallel.max(1);
 
@@ -76,13 +63,9 @@ pub async fn sync(
         let ws = Workspace::scan(&ws_name)?;
         match repo {
             Some(r) => {
-                let entry = ws
-                    .entries
-                    .iter()
-                    .find(|e| e.name == r)
-                    .ok_or_else(|| PowError::RepoNotFound(format!(
-                        "no entry '{r}' in workspace '{ws_name}'"
-                    )))?;
+                let entry = ws.entries.iter().find(|e| e.name == r).ok_or_else(|| {
+                    PowError::RepoNotFound(format!("no entry '{r}' in workspace '{ws_name}'"))
+                })?;
                 vec![(entry.name.clone(), entry.source_repo_path.clone())]
             }
             None => {
@@ -221,7 +204,12 @@ pub async fn exec(
 
     if dry_run {
         for entry in &ws.entries {
-            println!("[{}] (in {}) $ {}", entry.name, entry.path.display(), command);
+            println!(
+                "[{}] (in {}) $ {}",
+                entry.name,
+                entry.path.display(),
+                command
+            );
         }
         return Ok(());
     }

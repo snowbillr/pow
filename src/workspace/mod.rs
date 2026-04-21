@@ -58,21 +58,18 @@ impl Workspace {
                 .unwrap_or_default();
             let src_repo = git::worktree_source_repo(&p).unwrap_or_else(|_| p.clone());
             // match source by parent dir
-            let src_name = src_repo
-                .parent()
-                .and_then(|parent| {
-                    cfg.sources
-                        .iter()
-                        .find(|s| {
-                            s.expanded_path()
-                                .map(|ep| {
-                                    ep == parent
-                                        || ep.canonicalize().ok() == parent.canonicalize().ok()
-                                })
-                                .unwrap_or(false)
-                        })
-                        .map(|s| s.name.clone())
-                });
+            let src_name = src_repo.parent().and_then(|parent| {
+                cfg.sources
+                    .iter()
+                    .find(|s| {
+                        s.expanded_path()
+                            .map(|ep| {
+                                ep == parent || ep.canonicalize().ok() == parent.canonicalize().ok()
+                            })
+                            .unwrap_or(false)
+                    })
+                    .map(|s| s.name.clone())
+            });
             entries.push(Entry {
                 name: repo_name,
                 path: p,

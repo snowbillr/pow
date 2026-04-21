@@ -31,7 +31,7 @@ pub fn list(json: bool) -> Result<()> {
         .max()
         .unwrap_or(0)
         .max(4);
-    writeln!(out, "{:<nw$}  {:>5}  {}", "NAME", "N", "PATH", nw = name_w)?;
+    writeln!(out, "{:<nw$}  {:>5}  PATH", "NAME", "N", nw = name_w)?;
     for w in &workspaces {
         let marker = if w.active { "*" } else { " " };
         writeln!(
@@ -107,7 +107,12 @@ pub fn show(name: Option<&str>, json: bool, no_status: bool) -> Result<()> {
         return Ok(());
     }
     let name_w = rows.iter().map(|r| r.name.len()).max().unwrap_or(0).max(4);
-    let branch_w = rows.iter().map(|r| r.branch.len()).max().unwrap_or(0).max(6);
+    let branch_w = rows
+        .iter()
+        .map(|r| r.branch.len())
+        .max()
+        .unwrap_or(0)
+        .max(6);
     let src_w = rows
         .iter()
         .map(|r| r.source.as_deref().unwrap_or("-").len())
@@ -119,11 +124,10 @@ pub fn show(name: Option<&str>, json: bool, no_status: bool) -> Result<()> {
     let mut out = stdout.lock();
     writeln!(
         out,
-        "  {:<nw$}  {:<sw$}  {:<bw$}  {}",
+        "  {:<nw$}  {:<sw$}  {:<bw$}  STATUS",
         "REPO",
         "SOURCE",
         "BRANCH",
-        "STATUS",
         nw = name_w,
         sw = src_w,
         bw = branch_w,

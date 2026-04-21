@@ -7,6 +7,7 @@ use crate::git;
 #[derive(Debug, Clone)]
 pub struct ResolvedRepo {
     pub source_name: String,
+    #[allow(dead_code)]
     pub source_path: PathBuf,
     pub repo_path: PathBuf,
     pub repo_name: String,
@@ -18,9 +19,9 @@ pub struct ResolvedRepo {
 /// - Bare `name`   → look across all sources; error on ambiguity.
 pub fn resolve_repo(config: &Config, spec: &str) -> Result<ResolvedRepo> {
     if let Some((src_name, repo_name)) = spec.split_once('/') {
-        let src = config.find_source(src_name).ok_or_else(|| {
-            PowError::SourceNotFound(src_name.to_string())
-        })?;
+        let src = config
+            .find_source(src_name)
+            .ok_or_else(|| PowError::SourceNotFound(src_name.to_string()))?;
         return resolve_in_source(src, repo_name);
     }
 

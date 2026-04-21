@@ -59,14 +59,25 @@ mod tests {
 
     #[test]
     fn empty_include_passes_all_non_excluded() {
-        let repos = vec![repo("web", false), repo("api", false), repo("legacy-ui", false)];
+        let repos = vec![
+            repo("web", false),
+            repo("api", false),
+            repo("legacy-ui", false),
+        ];
         let got = apply_filters(&repos, &[], &["legacy-*".into()], true).unwrap();
-        assert_eq!(got.iter().map(|r| r.name.as_str()).collect::<Vec<_>>(), ["web", "api"]);
+        assert_eq!(
+            got.iter().map(|r| r.name.as_str()).collect::<Vec<_>>(),
+            ["web", "api"]
+        );
     }
 
     #[test]
     fn include_glob_matches() {
-        let repos = vec![repo("api-users", false), repo("api-orders", false), repo("web", false)];
+        let repos = vec![
+            repo("api-users", false),
+            repo("api-orders", false),
+            repo("web", false),
+        ];
         let got = apply_filters(&repos, &["api-*".into()], &[], true).unwrap();
         assert_eq!(got.len(), 2);
     }
@@ -75,7 +86,10 @@ mod tests {
     fn archived_skipped_by_default() {
         let repos = vec![repo("a", true), repo("b", false)];
         let got = apply_filters(&repos, &[], &[], true).unwrap();
-        assert_eq!(got.iter().map(|r| r.name.as_str()).collect::<Vec<_>>(), ["b"]);
+        assert_eq!(
+            got.iter().map(|r| r.name.as_str()).collect::<Vec<_>>(),
+            ["b"]
+        );
     }
 
     #[test]
@@ -89,6 +103,9 @@ mod tests {
     fn include_and_exclude_combined() {
         let repos = vec![repo("api-users", false), repo("api-legacy", false)];
         let got = apply_filters(&repos, &["api-*".into()], &["*-legacy".into()], true).unwrap();
-        assert_eq!(got.iter().map(|r| r.name.as_str()).collect::<Vec<_>>(), ["api-users"]);
+        assert_eq!(
+            got.iter().map(|r| r.name.as_str()).collect::<Vec<_>>(),
+            ["api-users"]
+        );
     }
 }
