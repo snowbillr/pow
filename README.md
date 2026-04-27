@@ -1,5 +1,9 @@
 # pow
 
+<p align="center">
+  <img src="assets/logo.png" alt="pow logo" width="240">
+</p>
+
 `pow` (project oriented workspace) is a Rust CLI that manages multi-repo workspaces via git worktrees. It groups worktrees from one or more source repos into a single directory, all checked out on a shared branch named after the workspace. Open one directory, run your tools (Claude Code, editor, formatter, build) scoped to exactly the repos you care about, all on the right branch.
 
 ## Install
