@@ -66,7 +66,7 @@ pow rm studio --force
 
 | Command | Description |
 | ------- | ----------- |
-| `pow new <name> [--force]` | Create empty workspace dir. |
+| `pow new <name> [--force] [-t <template>] [-f <base>] [--no-setup]` | Create empty workspace dir. With `-t`, also adds every repo from the named template. |
 | `pow add <repo> [-w <ws>] [-b <branch>] [-f <base>] [--no-setup]` | Add a repo as a worktree. |
 | `pow forget <repo> [-w <ws>] [--prune-branch]` | Remove a worktree. |
 | `pow rm <name> [--prune-branches] [--force]` | Tear down entire workspace. |
@@ -99,6 +99,14 @@ pow rm studio --force
 | `pow source sync <name> [--dry-run] [--prune] [--parallel <n>]` | Clone new org repos. |
 | `pow source remove <name> [--force]` | Unregister. |
 
+### Templates
+
+| Command | Description |
+| ------- | ----------- |
+| `pow template list [--json]` | List configured templates. |
+
+Templates are hand-edited in the config file; see [Config file](#config-file) below.
+
 ### Config / shell
 
 | Command | Description |
@@ -128,7 +136,13 @@ base_branch = "main"
 skip_archived = true
 include = ["web", "family-ties", "api-*"]
 exclude = ["legacy-*"]
+
+[[templates]]
+name = "frontend"
+repos = ["babylist/web", "babylist/api"]
 ```
+
+`pow new <ws> -t frontend` creates the workspace and adds every repo in the template, each on a branch named after the workspace. Pass `-f <base-ref>` to fork those branches from somewhere other than each source's `base_branch`. If any repo fails to add (missing source, branch conflict), the command continues and prints a summary, then exits non-zero.
 
 ## Per-repo setup (`.pow.toml`)
 

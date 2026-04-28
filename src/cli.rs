@@ -23,6 +23,15 @@ pub enum Commands {
         /// If the directory already exists, remove and recreate it.
         #[arg(long)]
         force: bool,
+        /// Template to apply (adds the template's repos after creating).
+        #[arg(short = 't', long)]
+        template: Option<String>,
+        /// Base branch/ref to create branches from when applying a template.
+        #[arg(short = 'f', long)]
+        from: Option<String>,
+        /// Skip per-repo setup hooks when applying a template.
+        #[arg(long)]
+        no_setup: bool,
     },
     /// Add a repo as a worktree in a workspace.
     Add {
@@ -136,6 +145,11 @@ pub enum Commands {
         #[command(subcommand)]
         command: SourceCommand,
     },
+    /// Manage workspace templates.
+    Template {
+        #[command(subcommand)]
+        command: TemplateCommand,
+    },
     /// Print, get, or set configuration.
     Config {
         /// Print the config as JSON.
@@ -184,6 +198,8 @@ pub enum CompleteKind {
     },
     /// Registered source names.
     Sources,
+    /// Configured template names.
+    Templates,
     /// Known config keys.
     ConfigKeys,
 }
@@ -236,6 +252,15 @@ pub enum SourceCommand {
 }
 
 #[derive(Subcommand, Debug)]
+pub enum TemplateCommand {
+    /// List configured templates.
+    List {
+        #[arg(long)]
+        json: bool,
+    },
+}
+
+#[derive(Subcommand, Debug)]
 pub enum ConfigCommand {
     /// Get a single config value by dotted key.
     Get { key: String },
@@ -245,7 +270,19 @@ pub enum ConfigCommand {
 
 pub async fn dispatch(cli: Cli) -> Result<(), PowError> {
     match cli.command {
-        Commands::New { name, force } => crate::workspace::lifecycle::new(&name, force),
+        Commands::New {
+            name,
+            force,
+            template,
+            from,
+            no_setup,
+        } => crate::workspace::lifecycle::new(
+            &name,
+            force,
+            template.as_deref(),
+            from.as_deref(),
+            no_setup,
+        ),
         Commands::Add {
             repo,
             workspace,
@@ -303,6 +340,7 @@ pub async fn dispatch(cli: Cli) -> Result<(), PowError> {
             dry_run,
         } => crate::workspace::work::exec(&command, workspace.as_deref(), parallel, dry_run).await,
         Commands::Source { command } => dispatch_source(command).await,
+        Commands::Template { command } => dispatch_template(command),
         Commands::Config { json, command } => dispatch_config(json, command),
         Commands::Init => crate::shell::print_shell_init(),
         Commands::Completions { shell } => {
@@ -356,6 +394,12 @@ async fn dispatch_source(cmd: SourceCommand) -> Result<(), PowError> {
             parallel,
         } => crate::source::sync::run(&name, dry_run, prune, parallel).await,
         SourceCommand::Remove { name, force } => crate::source::remove(&name, force),
+    }
+}
+
+fn dispatch_template(cmd: TemplateCommand) -> Result<(), PowError> {
+    match cmd {
+        TemplateCommand::List { json } => crate::template::list(json),
     }
 }
 

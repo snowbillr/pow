@@ -66,6 +66,13 @@ impl Source {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Template {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub repos: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
     #[serde(default)]
     pub settings: Settings,
@@ -73,6 +80,8 @@ pub struct Config {
     pub github: GithubConfig,
     #[serde(default, rename = "sources", skip_serializing_if = "Vec::is_empty")]
     pub sources: Vec<Source>,
+    #[serde(default, rename = "templates", skip_serializing_if = "Vec::is_empty")]
+    pub templates: Vec<Template>,
 }
 
 impl Default for Config {
@@ -81,6 +90,7 @@ impl Default for Config {
             settings: Settings::defaulted(),
             github: GithubConfig::default(),
             sources: Vec::new(),
+            templates: Vec::new(),
         }
     }
 }
@@ -134,6 +144,10 @@ impl Config {
         }
         self.sources.push(source);
         Ok(())
+    }
+
+    pub fn find_template(&self, name: &str) -> Option<&Template> {
+        self.templates.iter().find(|t| t.name == name)
     }
 
     pub fn remove_source(&mut self, name: &str) -> Result<Source> {
@@ -257,6 +271,25 @@ mod tests {
             back.sources[0].include,
             vec!["web".to_string(), "api-*".into()]
         );
+    }
+
+    #[test]
+    fn roundtrips_with_template() {
+        let mut cfg = Config::default();
+        cfg.templates.push(Template {
+            name: "frontend".into(),
+            repos: vec!["babylist/web".into(), "babylist/api".into()],
+        });
+        let text = toml::to_string_pretty(&cfg).unwrap();
+        let back: Config = toml::from_str(&text).unwrap();
+        assert_eq!(back.templates.len(), 1);
+        assert_eq!(back.templates[0].name, "frontend");
+        assert_eq!(
+            back.templates[0].repos,
+            vec!["babylist/web".to_string(), "babylist/api".into()]
+        );
+        assert!(back.find_template("frontend").is_some());
+        assert!(back.find_template("missing").is_none());
     }
 
     #[test]

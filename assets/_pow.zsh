@@ -33,6 +33,12 @@ _pow_sources() {
     _describe -t sources 'source' items
 }
 
+_pow_templates() {
+    local -a items
+    items=(${(f)"$(command pow __complete templates 2>/dev/null)"})
+    _describe -t templates 'template' items
+}
+
 _pow_config_keys() {
     local -a items
     items=(${(f)"$(command pow __complete config-keys 2>/dev/null)"})
@@ -62,6 +68,7 @@ _pow_commands() {
         'status:Git status across entries in a workspace'
         'exec:Run a command in every entry directory'
         'source:Manage sources'
+        'template:Manage workspace templates'
         'config:Print, get, or set configuration'
         'init:Print zsh shell integration script'
         'completions:Print shell completion script'
@@ -79,6 +86,14 @@ _pow_source_commands() {
         'remove:Unregister a source'
     )
     _describe -t source-commands 'source subcommand' commands
+}
+
+_pow_template_commands() {
+    local -a commands
+    commands=(
+        'list:List configured templates'
+    )
+    _describe -t template-commands 'template subcommand' commands
 }
 
 _pow_config_commands() {
@@ -131,6 +146,24 @@ _pow_source() {
     esac
 }
 
+_pow_template() {
+    local context state state_descr line
+    typeset -A opt_args
+    _arguments -C \
+        '1: :_pow_template_commands' \
+        '*::template-arg:->template-arg'
+
+    case $state in
+        template-arg)
+            case $words[1] in
+                list)
+                    _arguments '--json[Emit JSON]'
+                    ;;
+            esac
+            ;;
+    esac
+}
+
 _pow_config() {
     local context state state_descr line
     typeset -A opt_args
@@ -170,6 +203,9 @@ _pow() {
                 new)
                     _arguments \
                         '--force[Recreate if exists]' \
+                        '(-t --template)'{-t+,--template=}'[Template to apply]: :_pow_templates' \
+                        '(-f --from)'{-f+,--from=}'[Base branch/ref]:base ref' \
+                        '--no-setup[Skip per-repo setup hooks]' \
                         '1:workspace name'
                     ;;
                 add)
@@ -240,6 +276,9 @@ _pow() {
                     ;;
                 source)
                     _pow_source
+                    ;;
+                template)
+                    _pow_template
                     ;;
                 config)
                     _pow_config

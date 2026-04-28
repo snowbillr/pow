@@ -11,6 +11,7 @@ mod repo_setup;
 mod resolve;
 mod shell;
 mod source;
+mod template;
 mod ui;
 mod workspace;
 

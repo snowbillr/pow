@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Workspace templates. Define `[[templates]]` blocks in the global config (`name` + `repos`) and bootstrap a workspace in one command: `pow new <ws> -t <template>`. Accepts `-f/--from` and `--no-setup`, applied to every repo in the template. Failures continue and are reported in a summary; the command exits non-zero if any repo failed. New `pow template list` and tab completion for `-t`.
 - Per-repo setup hooks via a committed `.pow.toml`. `pow add` runs `[setup].commands` and copies `[setup].copy` files from the source clone into the new worktree; `pow sync` re-copies those files. Skip with `pow add --no-setup`.
 
 ## 0.1.0

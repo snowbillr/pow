@@ -23,6 +23,7 @@ pub fn run(kind: CompleteKind) {
         CompleteKind::Entries { workspace } => print_entries(workspace.as_deref()),
         CompleteKind::Repos { source } => print_repos(source.as_deref()),
         CompleteKind::Sources => print_sources(),
+        CompleteKind::Templates => print_templates(),
         CompleteKind::ConfigKeys => print_config_keys(),
     }
 }
@@ -81,6 +82,15 @@ fn print_sources() {
     };
     for source in &cfg.sources {
         println!("{}", source.name);
+    }
+}
+
+fn print_templates() {
+    let Ok(cfg) = Config::load() else {
+        return;
+    };
+    for tmpl in &cfg.templates {
+        println!("{}", tmpl.name);
     }
 }
 
