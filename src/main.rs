@@ -1,6 +1,7 @@
 use clap::Parser;
 
 mod cli;
+mod complete;
 mod config;
 mod error;
 mod git;

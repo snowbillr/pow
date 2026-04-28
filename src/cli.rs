@@ -159,6 +159,33 @@ pub enum Commands {
     /// Internal: resolve cd target for shell integration.
     #[command(name = "__resolve-cd", hide = true)]
     ResolveCd { args: Vec<String> },
+    /// Internal: print completion candidates for shell integration.
+    #[command(name = "__complete", hide = true)]
+    Complete {
+        #[command(subcommand)]
+        kind: CompleteKind,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+pub enum CompleteKind {
+    /// Workspace names.
+    Workspaces,
+    /// Entries (repos) inside a workspace. Defaults to $POW_ACTIVE.
+    Entries {
+        #[arg(short = 'w', long)]
+        workspace: Option<String>,
+    },
+    /// Repo names from registered sources (for `pow add`).
+    Repos {
+        /// Limit to a single source by name.
+        #[arg(long)]
+        source: Option<String>,
+    },
+    /// Registered source names.
+    Sources,
+    /// Known config keys.
+    ConfigKeys,
 }
 
 #[derive(Subcommand, Debug)]
@@ -279,13 +306,21 @@ pub async fn dispatch(cli: Cli) -> Result<(), PowError> {
         Commands::Config { json, command } => dispatch_config(json, command),
         Commands::Init => crate::shell::print_shell_init(),
         Commands::Completions { shell } => {
-            use clap::CommandFactory;
-            let mut cmd = Cli::command();
-            clap_complete::generate(shell, &mut cmd, "pow", &mut std::io::stdout());
+            if shell == clap_complete::Shell::Zsh {
+                print!("{}", include_str!("../assets/_pow.zsh"));
+            } else {
+                use clap::CommandFactory;
+                let mut cmd = Cli::command();
+                clap_complete::generate(shell, &mut cmd, "pow", &mut std::io::stdout());
+            }
             Ok(())
         }
         Commands::ResolveUse { name } => crate::workspace::nav::resolve_use(&name),
         Commands::ResolveCd { args } => crate::workspace::nav::resolve_cd(&args),
+        Commands::Complete { kind } => {
+            crate::complete::run(kind);
+            Ok(())
+        }
     }
 }
 

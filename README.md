@@ -155,9 +155,14 @@ eval "$(pow init)"
 For tab completions:
 
 ```sh
-pow completions zsh > ~/.zfunc/_pow
-# ensure ~/.zfunc is in your fpath
+pow completions zsh > "${fpath[1]}/_pow"
+# or: pow completions zsh > ~/.zfunc/_pow  (and add ~/.zfunc to $fpath)
 ```
+
+The zsh completion is dynamic — it tab-completes workspace names, entries
+within a workspace, repos from your registered sources, source names, and
+config keys. `pow completions bash|fish|powershell` emit static
+clap-generated scripts (subcommand and flag names only).
 
 ## Environment variables
 
