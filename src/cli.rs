@@ -37,6 +37,9 @@ pub enum Commands {
         /// Base branch/ref to create the branch from.
         #[arg(long)]
         from: Option<String>,
+        /// Skip per-repo setup hooks defined in .pow.toml.
+        #[arg(long)]
+        no_setup: bool,
     },
     /// Remove a worktree from a workspace.
     Forget {
@@ -221,11 +224,13 @@ pub async fn dispatch(cli: Cli) -> Result<(), PowError> {
             workspace,
             branch,
             from,
+            no_setup,
         } => crate::workspace::lifecycle::add(
             &repo,
             workspace.as_deref(),
             branch.as_deref(),
             from.as_deref(),
+            no_setup,
         ),
         Commands::Forget {
             repo,

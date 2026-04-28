@@ -67,7 +67,7 @@ pow rm studio --force
 | Command | Description |
 | ------- | ----------- |
 | `pow new <name> [--force]` | Create empty workspace dir. |
-| `pow add <repo> [-w <ws>] [-b <branch>] [--from <base>]` | Add a repo as a worktree. |
+| `pow add <repo> [-w <ws>] [-b <branch>] [--from <base>] [--no-setup]` | Add a repo as a worktree. |
 | `pow forget <repo> [-w <ws>] [--prune-branch]` | Remove a worktree. |
 | `pow rm <name> [--prune-branches] [--force]` | Tear down entire workspace. |
 | `pow list [--json]` | List all workspaces. |
@@ -129,6 +129,20 @@ skip_archived = true
 include = ["web", "family-ties", "api-*"]
 exclude = ["legacy-*"]
 ```
+
+## Per-repo setup (`.pow.toml`)
+
+Drop a `.pow.toml` at the root of any source repo to declare setup that runs whenever pow brings the repo into a workspace:
+
+```toml
+[setup]
+commands = ["npm install", "bin/setup"]   # run sequentially in the new worktree on `pow add`
+copy = [".env", ".env.local"]             # copied from source clone → worktree on `pow add` and `pow sync`
+```
+
+- `commands` run in the new worktree directory with live output. Failures print a warning but do not roll back the worktree.
+- `copy` paths are relative; missing source files are skipped. Files are re-copied (overwriting) when `pow sync` runs against a workspace that contains the entry. `pow sync --all` skips re-copy.
+- Pass `pow add --no-setup` to skip both steps.
 
 ## Shell integration
 

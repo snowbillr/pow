@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Per-repo setup hooks via a committed `.pow.toml`. `pow add` runs `[setup].commands` and copies `[setup].copy` files from the source clone into the new worktree; `pow sync` re-copies those files. Skip with `pow add --no-setup`.
+
 ## 0.1.0
 
 Initial release.

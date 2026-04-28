@@ -5,6 +5,7 @@ use crate::config::Config;
 use crate::error::{PowError, Result};
 use crate::git;
 use crate::paths;
+use crate::repo_setup;
 use crate::resolve;
 use crate::workspace::{resolve_workspace_name, Workspace};
 
@@ -36,6 +37,7 @@ pub fn add(
     workspace: Option<&str>,
     branch: Option<&str>,
     from: Option<&str>,
+    no_setup: bool,
 ) -> Result<()> {
     let cfg = Config::load()?;
     let ws_name = resolve_workspace_name(workspace)?;
@@ -75,6 +77,13 @@ pub fn add(
         git::worktree_add(&resolved.repo_path, &dest, &branch_name, Some(&base_branch))
     {
         return Err(augment_worktree_error(e, &branch_name, &resolved.repo_path));
+    }
+
+    if !no_setup {
+        if let Some(setup) = repo_setup::load(&dest)? {
+            repo_setup::run_commands(&dest, &setup.commands);
+            repo_setup::copy_files(&resolved.repo_path, &dest, &setup.copy);
+        }
     }
 
     println!(

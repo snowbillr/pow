@@ -6,6 +6,7 @@ mod error;
 mod git;
 mod github;
 mod paths;
+mod repo_setup;
 mod resolve;
 mod shell;
 mod source;

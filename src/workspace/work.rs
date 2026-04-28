@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 use std::process::Stdio;
 
@@ -6,6 +7,7 @@ use futures::stream::StreamExt;
 use crate::config::Config;
 use crate::error::{PowError, Result};
 use crate::git;
+use crate::repo_setup;
 use crate::workspace::{resolve_workspace_name, show, Entry, Workspace};
 
 pub fn switch(repo: &str, target: &str, new: bool, workspace: Option<&str>) -> Result<()> {
@@ -42,7 +44,7 @@ pub async fn sync(repo: Option<&str>, all: bool, workspace: Option<&str>) -> Res
     let cfg = Config::load()?;
     let parallel = cfg.settings.parallel.max(1);
 
-    let targets: Vec<(String, PathBuf)> = if all {
+    let (targets, ws): (Vec<(String, PathBuf)>, Option<Workspace>) = if all {
         let mut out = Vec::new();
         for s in &cfg.sources {
             let p = match s.expanded_path() {
@@ -57,11 +59,11 @@ pub async fn sync(repo: Option<&str>, all: bool, workspace: Option<&str>) -> Res
                 out.push((format!("{}/{}", s.name, repo_name), repo_path));
             }
         }
-        out
+        (out, None)
     } else {
         let ws_name = resolve_workspace_name(workspace)?;
         let ws = Workspace::scan(&ws_name)?;
-        match repo {
+        let targets = match repo {
             Some(r) => {
                 let entry = ws.entries.iter().find(|e| e.name == r).ok_or_else(|| {
                     PowError::RepoNotFound(format!("no entry '{r}' in workspace '{ws_name}'"))
@@ -69,7 +71,7 @@ pub async fn sync(repo: Option<&str>, all: bool, workspace: Option<&str>) -> Res
                 vec![(entry.name.clone(), entry.source_repo_path.clone())]
             }
             None => {
-                let mut seen = std::collections::HashSet::new();
+                let mut seen = HashSet::new();
                 ws.entries
                     .iter()
                     .filter_map(|e| {
@@ -81,7 +83,8 @@ pub async fn sync(repo: Option<&str>, all: bool, workspace: Option<&str>) -> Res
                     })
                     .collect()
             }
-        }
+        };
+        (targets, Some(ws))
     };
 
     if targets.is_empty() {
@@ -104,6 +107,7 @@ pub async fn sync(repo: Option<&str>, all: bool, workspace: Option<&str>) -> Res
     .buffer_unordered(parallel);
 
     let mut had_err = false;
+    let mut fetched: HashSet<PathBuf> = HashSet::new();
     while let Some(joined) = stream.next().await {
         let (label, path, res) = match joined {
             Ok(v) => v,
@@ -116,6 +120,7 @@ pub async fn sync(repo: Option<&str>, all: bool, workspace: Option<&str>) -> Res
         match res {
             Ok(out) if out.status.success() => {
                 println!("[{label}] fetched in {}", path.display());
+                fetched.insert(path);
             }
             Ok(out) => {
                 let err = String::from_utf8_lossy(&out.stderr).trim().to_string();
@@ -125,6 +130,25 @@ pub async fn sync(repo: Option<&str>, all: bool, workspace: Option<&str>) -> Res
             Err(e) => {
                 eprintln!("[{label}] failed to run git: {e}");
                 had_err = true;
+            }
+        }
+    }
+
+    if let Some(ws) = ws {
+        for entry in &ws.entries {
+            if !fetched.contains(&entry.source_repo_path) {
+                continue;
+            }
+            match repo_setup::load(&entry.path) {
+                Ok(Some(setup)) => {
+                    repo_setup::copy_files(
+                        &entry.source_repo_path,
+                        &entry.path,
+                        &setup.copy,
+                    );
+                }
+                Ok(None) => {}
+                Err(e) => eprintln!("warning: [{}] reading .pow.toml: {e}", entry.name),
             }
         }
     }
