@@ -67,7 +67,7 @@ pow rm studio --force
 | Command | Description |
 | ------- | ----------- |
 | `pow new <name> [--force]` | Create empty workspace dir. |
-| `pow add <repo> [-w <ws>] [-b <branch>] [--from <base>] [--no-setup]` | Add a repo as a worktree. |
+| `pow add <repo> [-w <ws>] [-b <branch>] [-f <base>] [--no-setup]` | Add a repo as a worktree. |
 | `pow forget <repo> [-w <ws>] [--prune-branch]` | Remove a worktree. |
 | `pow rm <name> [--prune-branches] [--force]` | Tear down entire workspace. |
 | `pow list [--json]` | List all workspaces. |

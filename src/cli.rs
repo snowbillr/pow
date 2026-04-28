@@ -35,7 +35,7 @@ pub enum Commands {
         #[arg(short = 'b', long)]
         branch: Option<String>,
         /// Base branch/ref to create the branch from.
-        #[arg(long)]
+        #[arg(short = 'f', long)]
         from: Option<String>,
         /// Skip per-repo setup hooks defined in .pow.toml.
         #[arg(long)]
