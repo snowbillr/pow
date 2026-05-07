@@ -33,10 +33,11 @@ pub enum Commands {
         #[arg(long)]
         no_setup: bool,
     },
-    /// Add a repo as a worktree in a workspace.
+    /// Add one or more repos as worktrees in a workspace.
     Add {
-        /// Repo name (bare or source/name).
-        repo: String,
+        /// Repo name(s) (bare or source/name). Multiple may be given.
+        #[arg(required = true, num_args = 1..)]
+        repos: Vec<String>,
         /// Workspace to add to. Defaults to $POW_ACTIVE.
         #[arg(short = 'w', long)]
         workspace: Option<String>,
@@ -284,13 +285,13 @@ pub async fn dispatch(cli: Cli) -> Result<(), PowError> {
             no_setup,
         ),
         Commands::Add {
-            repo,
+            repos,
             workspace,
             branch,
             from,
             no_setup,
         } => crate::workspace::lifecycle::add(
-            &repo,
+            &repos,
             workspace.as_deref(),
             branch.as_deref(),
             from.as_deref(),

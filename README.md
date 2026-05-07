@@ -30,8 +30,7 @@ eval "$(pow init)"           # add this to ~/.zshrc for persistence
 pow use studio               # sets $POW_ACTIVE, cds to ~/workspaces/studio/
 
 # 4. Add repos. Each becomes a worktree checked out on branch `studio`.
-pow add family-ties
-pow add StudioOne
+pow add family-ties StudioOne
 
 # 5. Navigate.
 pow cd studio family-ties    # cd ~/workspaces/studio/family-ties
@@ -67,7 +66,7 @@ pow rm studio --force
 | Command | Description |
 | ------- | ----------- |
 | `pow new <name> [--force] [-t <template>] [-f <base>] [--no-setup]` | Create empty workspace dir. With `-t`, also adds every repo from the named template. |
-| `pow add <repo> [-w <ws>] [-b <branch>] [-f <base>] [--no-setup]` | Add a repo as a worktree. |
+| `pow add <repo>... [-w <ws>] [-b <branch>] [-f <base>] [--no-setup]` | Add one or more repos as worktrees. |
 | `pow forget <repo> [-w <ws>] [--prune-branch]` | Remove a worktree. |
 | `pow rm <name> [--prune-branches] [--force]` | Tear down entire workspace. |
 | `pow list [--json]` | List all workspaces. |

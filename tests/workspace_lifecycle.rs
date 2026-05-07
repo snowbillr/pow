@@ -172,6 +172,56 @@ fn qualified_repo_name_resolves() {
 }
 
 #[test]
+fn add_multiple_repos_in_one_invocation() {
+    let env = TestEnv::new();
+    let source_dir = env.make_source("Babylist", &["family-ties", "StudioOne", "web"]);
+
+    env.pow()
+        .args(["source", "add", "babylist"])
+        .arg(&source_dir)
+        .assert()
+        .success();
+    env.pow().args(["new", "studio"]).assert().success();
+
+    env.pow()
+        .args(["add", "family-ties", "StudioOne", "web"])
+        .env("POW_ACTIVE", "studio")
+        .assert()
+        .success();
+
+    let ws = env.workspaces_root.join("studio");
+    assert!(ws.join("family-ties").is_dir());
+    assert!(ws.join("StudioOne").is_dir());
+    assert!(ws.join("web").is_dir());
+}
+
+#[test]
+fn add_multiple_repos_partial_failure_continues() {
+    let env = TestEnv::new();
+    let source_dir = env.make_source("Babylist", &["family-ties", "web"]);
+
+    env.pow()
+        .args(["source", "add", "babylist"])
+        .arg(&source_dir)
+        .assert()
+        .success();
+    env.pow().args(["new", "ws"]).assert().success();
+
+    let output = env
+        .pow()
+        .args(["add", "family-ties", "does-not-exist", "web"])
+        .env("POW_ACTIVE", "ws")
+        .output()
+        .unwrap();
+    assert!(!output.status.success(), "expected non-zero exit");
+
+    let ws = env.workspaces_root.join("ws");
+    assert!(ws.join("family-ties").is_dir(), "first repo should be added");
+    assert!(ws.join("web").is_dir(), "third repo should be added");
+    assert!(!ws.join("does-not-exist").exists());
+}
+
+#[test]
 fn add_without_workspace_or_active_errors() {
     let env = TestEnv::new();
     let dir = env.make_source("bl", &["repo"]);

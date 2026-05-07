@@ -214,7 +214,7 @@ _pow() {
                         '(-b --branch)'{-b+,--branch=}'[Branch]:branch' \
                         '(-f --from)'{-f+,--from=}'[Base branch/ref]:base ref' \
                         '--no-setup[Skip per-repo setup hooks]' \
-                        '1: :_pow_repos'
+                        '*: :_pow_repos'
                     ;;
                 forget)
                     _arguments \

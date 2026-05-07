@@ -82,7 +82,7 @@ pub fn new(
 }
 
 pub fn add(
-    repo: &str,
+    repos: &[String],
     workspace: Option<&str>,
     branch: Option<&str>,
     from: Option<&str>,
@@ -94,7 +94,37 @@ pub fn add(
     if !ws_path.exists() {
         return Err(PowError::WorkspaceNotFound(ws_name));
     }
-    add_repo_to_workspace(&cfg, &ws_name, &ws_path, repo, branch, from, no_setup)
+
+    // Single-repo path preserves the original error type (and exit code).
+    if repos.len() == 1 {
+        return add_repo_to_workspace(
+            &cfg, &ws_name, &ws_path, &repos[0], branch, from, no_setup,
+        );
+    }
+
+    let total = repos.len();
+    let mut failures: Vec<(String, String)> = Vec::new();
+    for repo in repos {
+        if let Err(e) =
+            add_repo_to_workspace(&cfg, &ws_name, &ws_path, repo, branch, from, no_setup)
+        {
+            failures.push((repo.clone(), e.to_string()));
+        }
+    }
+
+    let succeeded = total - failures.len();
+    println!("Added {succeeded} of {total} repos to workspace '{ws_name}'.");
+    if !failures.is_empty() {
+        eprintln!("Failed:");
+        for (repo, msg) in &failures {
+            eprintln!("  {repo} — {msg}");
+        }
+        return Err(PowError::Message(format!(
+            "{} repo(s) failed to add to workspace '{ws_name}'",
+            failures.len()
+        )));
+    }
+    Ok(())
 }
 
 /// Add a single repo to an already-validated workspace. Used by both
