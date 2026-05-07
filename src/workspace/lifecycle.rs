@@ -237,7 +237,7 @@ pub fn rm(name: &str, prune_branches: bool, force: bool) -> Result<()> {
 
     if !force {
         eprint!(
-            "Tear down workspace '{name}' ({} {})? [y/N] ",
+            "Tear down workspace '{name}' ({} {})? [Y/n] ",
             ws.entries.len(),
             if ws.entries.len() == 1 {
                 "entry"
@@ -249,7 +249,7 @@ pub fn rm(name: &str, prune_branches: bool, force: bool) -> Result<()> {
         let mut buf = String::new();
         io::stdin().read_line(&mut buf)?;
         let ans = buf.trim().to_lowercase();
-        if ans != "y" && ans != "yes" {
+        if !ans.is_empty() && ans != "y" && ans != "yes" {
             eprintln!("aborted.");
             return Ok(());
         }
